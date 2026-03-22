@@ -11,6 +11,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.constrainHeight
+import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -23,6 +25,8 @@ fun CustomLayoutHW(
         content = content,
         modifier = modifier
     ) { measurables, constraints ->
+        require(columns > 0) { "Columns must be > 0" }
+        check(constraints.hasBoundedWidth) { "CustomLayoutHW requires bounded width" }
         val placeables = measurables.map { it.measure(constraints) }
         val columnWidths = IntArray(columns)
         placeables.forEachIndexed { index, placeable ->
@@ -35,8 +39,8 @@ fun CustomLayoutHW(
             val row = index / columns
             rowHeights[row] = maxOf(rowHeights[row], placeable.height)
         }
-        val totalWidth = columnWidths.sum().coerceAtMost(constraints.maxWidth)
-        val totalHeight = rowHeights.sum().coerceAtMost(constraints.maxHeight)
+        val totalWidth = constraints.constrainWidth(columnWidths.sum())
+        val totalHeight = constraints.constrainHeight(rowHeights.sum())
         layout(totalWidth, totalHeight) {
             placeables.forEachIndexed { index, placeable ->
                 val columnIndex = index % columns
@@ -54,7 +58,7 @@ fun CustomLayoutHW(
 fun CustomLayoutHWPreview() {
     Surface {
         CustomLayoutHW(
-            columns = 4,
+            columns = 3,
             modifier = Modifier
                 .padding(4.dp)
                 .border(2.dp, color = Color.Black)
